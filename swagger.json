@@ -1,0 +1,401 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Employee & Department API",
+    "version": "1.0.0",
+    "description": "CRUD APIs for Employee and Department with required parameters and schemas."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local server"
+    }
+  ],
+  "components": {
+    "parameters": {
+      "PageParam": {
+        "name": "page",
+        "in": "query",
+        "description": "Page number (starts at 1)",
+        "required": false,
+        "schema": { "type": "integer", "default": 1, "minimum": 1 }
+      },
+      "LimitParam": {
+        "name": "limit",
+        "in": "query",
+        "description": "Number of items per page",
+        "required": false,
+        "schema": { "type": "integer", "default": 20, "minimum": 1 }
+      },
+      "DepartmentQueryParam": {
+        "name": "department",
+        "in": "query",
+        "description": "Filter by department ObjectId",
+        "required": false,
+        "schema": { "type": "string" }
+      },
+      "QParam": {
+        "name": "q",
+        "in": "query",
+        "description": "Full-text search on firstName/lastName/position/email",
+        "required": false,
+        "schema": { "type": "string" }
+      },
+      "IdPathParam": {
+        "name": "id",
+        "in": "path",
+        "description": "Resource id (ObjectId)",
+        "required": true,
+        "schema": { "type": "string" }
+      }
+    },
+    "schemas": {
+      "Department": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "location": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["name"]
+      },
+      "NewDepartment": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "location": { "type": "string" }
+        },
+        "required": ["name"]
+      },
+      "Employee": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "position": { "type": "string" },
+          "salary": { "type": "number" },
+          "hireDate": { "type": "string", "format": "date-time" },
+          "department": { "$ref": "#/components/schemas/Department" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["firstName", "lastName", "email", "department"]
+      },
+      "NewEmployee": {
+        "type": "object",
+        "properties": {
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "position": { "type": "string" },
+          "salary": { "type": "number" },
+          "hireDate": { "type": "string", "format": "date" },
+          "department": { "type": "string", "description": "Department ObjectId" }
+        },
+        "required": ["firstName", "lastName", "email", "department"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "details": { "type": ["string", "object"] }
+        }
+      },
+      "MessageResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request (validation failed)",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+      }
+    }
+  },
+  "paths": {
+    "/departments": {
+      "get": {
+        "summary": "List departments",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/LimitParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of departments",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Department" } } } }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create department",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/NewDepartment" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Department created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Department" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/departments/{id}": {
+      "get": {
+        "summary": "Get department by id",
+        "parameters": [{ "$ref": "#/components/parameters/IdPathParam" }],
+        "responses": {
+          "200": { "description": "Department", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Department" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "summary": "Update department by id",
+        "parameters": [{ "$ref": "#/components/parameters/IdPathParam" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NewDepartment" } } }
+        },
+        "responses": {
+          "200": { "description": "Updated department", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Department" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "summary": "Delete department by id",
+        "parameters": [{ "$ref": "#/components/parameters/IdPathParam" }],
+        "responses": {
+          "200": { "description": "Deleted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MessageResponse" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/employees": {
+      "get": {
+        "summary": "List employees",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/LimitParam" },
+          { "$ref": "#/components/parameters/DepartmentQueryParam" },
+          { "$ref": "#/components/parameters/QParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of employees",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Employee" } } } }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create an employee",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NewEmployee" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Employee created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Employee" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/employees/{id}": {
+      "get": {
+        "summary": "Get employee by id",
+        "parameters": [{ "$ref": "#/components/parameters/IdPathParam" }],
+        "responses": {
+          "200": { "description": "Employee", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Employee" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "summary": "Update employee by id",
+        "parameters": [{ "$ref": "#/components/parameters/IdPathParam" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NewEmployee" } } }
+        },
+        "responses": {
+          "200": { "description": "Employee updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Employee" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "summary": "Delete employee by id",
+        "parameters": [{ "$ref": "#/components/parameters/IdPathParam" }],
+        "responses": {
+          "200": { "description": "Deleted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MessageResponse" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "User Login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login Successful" },
+          "400": { "description": "Bad credentials" }
+        }
+      }
+    },
+    "/verify": {
+      "post": {
+        "summary": "Verify user with OTP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "otp"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "otp": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Email Verified Successfully" },
+          "400": { "description": "Invalid or expired OTP" }
+        }
+      }
+    },
+    "/getOtp": {
+      "post": {
+        "summary": "Request OTP for Email Verification",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "OTP sent successfully" },
+          "400": { "description": "Bad request" }
+        }
+      }
+    },
+    "/googlelogin": {
+      "post": {
+        "summary": "Login using Google JWT credential",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["credential"],
+                "properties": {
+                  "credential": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User logged in with Google" },
+          "400": { "description": "Bad request" }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "summary": "Logout user",
+        "responses": {
+          "200": { "description": "User logged out" }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "summary": "Register new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "email", "password"],
+                "properties": {
+                  "username": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User registered successfully" },
+          "400": { "description": "Email already in use or missing fields" }
+        }
+      }
+    },
+    "/dashboard": {
+      "get": {
+        "summary": "Get dashboard data (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Dashboard data returned" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Get all users",
+        "responses": {
+          "200": { "description": "List of users" },
+          "500": { "description": "Server error" }
+        }
+      }
+    }
+  }
+}
