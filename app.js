@@ -24,6 +24,8 @@ app.use(cors({
     }
     return callback(null, true);
   }
+  methods: "GET,POST,PUT,DELETE,PATCH",
+  allowedHeaders: "Content-Type, Authorization"
 }));
 
 app.use(function(req, res, next) {
